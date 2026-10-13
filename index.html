@@ -149,7 +149,7 @@
     });
 
     // link.txt se URL fetch karo
-    fetch('versions.txt', { cache: 'no-store' })
+    fetch('a.txt', { cache: 'no-store' })
       .then(function (r) { return r.text(); })
       .then(function (u) {
         u = (u || '').replace(/[\u0000-\u001F\u007F]/g, '').trim();
