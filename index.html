@@ -1,24 +1,170 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F0B1F">
 <style>
-  html,body{margin:0;padding:0;background:#0F0B1F;height:100%;overflow:hidden;}
-  iframe{border:0;width:100%;height:100vh;display:block;}
-  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:sans-serif;}
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0F0B1F;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* ---- Loading screen ---- */
+  #load {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, #1B1436 0%, #0F0B1F 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 10;
+    transition: opacity .45s ease;
+  }
+  #load.hide { opacity: 0; pointer-events: none; }
+
+  /* Brand */
+  .brand {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+    background: linear-gradient(90deg, #A78BFA, #F472B6, #60A5FA);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .7; transform: scale(1); }
+    50%      { opacity: 1;  transform: scale(1.04); }
+  }
+
+  /* Spinner */
+  .spinner {
+    width: 54px;
+    height: 54px;
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .spinner::before,
+  .spinner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+  }
+  .spinner::before {
+    border-top-color: #A78BFA;
+    border-right-color: #F472B6;
+    animation: spin 1s linear infinite;
+  }
+  .spinner::after {
+    border-bottom-color: #60A5FA;
+    border-left-color: #34D399;
+    animation: spin 1.5s linear infinite reverse;
+    inset: 6px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Dots */
+  .dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #A78BFA;
+    opacity: .4;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .15s; background: #F472B6; }
+  .dots span:nth-child(3) { animation-delay: .30s; background: #60A5FA; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: .4; }
+    40%           { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .label {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.55);
+    margin-top: 18px;
+  }
+
+  /* ---- Iframe ---- */
+  #frame {
+    border: 0;
+    width: 100%;
+    height: 100vh;
+    display: block;
+    background: #0F0B1F;
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  #frame.show { opacity: 1; }
 </style>
 </head>
 <body>
-<div id="load">Loading...</div>
-<iframe id="frame" style="display:none"></iframe>
+
+<div id="load">
+  <div class="brand">ROLEVERSE</div>
+  <div class="spinner"></div>
+  <div class="dots"><span></span><span></span><span></span></div>
+  <div class="label">Loading</div>
+</div>
+
+<iframe id="frame" src="about:blank" allowfullscreen></iframe>
+
 <script>
-fetch('link.txt').then(r=>r.text()).then(u=>{
-  u = u.trim();
-  document.getElementById('load').style.display='none';
-  const f = document.getElementById('frame');
-  f.style.display='block';
-  f.src = u;
-});
+  (function () {
+    var loadEl  = document.getElementById('load');
+    var frameEl = document.getElementById('frame');
+
+    function hideLoader() {
+      if (loadEl.classList.contains('hide')) return;
+      loadEl.classList.add('hide');
+      frameEl.classList.add('show');
+      setTimeout(function () { loadEl.style.display = 'none'; }, 500);
+    }
+
+    // Jab iframe actually load ho jaye tabhi loader hatao
+    frameEl.addEventListener('load', function () {
+      if (frameEl.src && frameEl.src !== 'about:blank') {
+        hideLoader();
+      }
+    });
+
+    // link.txt se URL fetch karo
+    fetch('link.txt', { cache: 'no-store' })
+      .then(function (r) { return r.text(); })
+      .then(function (u) {
+        u = (u || '').replace(/[\u0000-\u001F\u007F]/g, '').trim();
+        if (!u) { throw new Error('empty url'); }
+        frameEl.src = u;
+        // Safety: agar 12s tak iframe load event na aaye to bhi loader hata do
+        setTimeout(hideLoader, 12000);
+      })
+      .catch(function () {
+        // URL nahi mili — error text dikhao
+        loadEl.innerHTML =
+          '<div class="brand">ROLEVERSE</div>' +
+          '<div class="label" style="color:#F87171;text-transform:none;letter-spacing:0;font-size:14px;">Unable to load. Please check your connection.</div>';
+      });
+  })();
 </script>
 </body>
 </html>
