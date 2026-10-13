@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  html,body{margin:0;padding:0;background:#0F0B1F;height:100%;overflow:hidden;}
+  iframe{border:0;width:100%;height:100vh;display:block;}
+  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:sans-serif;}
+</style>
+</head>
+<body>
+<div id="load">Loading...</div>
+<iframe id="frame" style="display:none"></iframe>
+<script>
+fetch('link.txt').then(r=>r.text()).then(u=>{
+  u = u.trim();
+  document.getElementById('load').style.display='none';
+  const f = document.getElementById('frame');
+  f.style.display='block';
+  f.src = u;
+});
+</script>
+</body>
+</html>
